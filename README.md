@@ -1,53 +1,60 @@
-# Go forth and build! 🚀
+# MAPTA v2 - Multi-Agent Pentesting Framework
 
-## Tutorial: How to make your first commit 📹:
+MAPTA v2 is a distributed, multi-container pentesting framework using Redis for job queuing and multiple specialized worker agents.
 
-This video example shows how to:
+## Architecture
 
-- Edit your container code
-- Raise a new pull request
-- Deploy the newest version automatically 🚀
+- **Coordinator**: Flask API server handling scan requests and result aggregation
+- **Redis**: Message broker for job and result queues
+- **Worker Agents**:
+  - Recon: Nmap port scanning
+  - Web: Gobuster and ffuf directory enumeration
+  - Vuln: Nikto vulnerability scanning
 
-https://user-images.githubusercontent.com/1718624/216366290-9bcac918-8605-4cf5-a98a-75bb8f722966.mp4
+## Quick Start
 
+1. Clone the repository
+2. Start the services: `docker-compose up`
+3. API is available at http://localhost:5000
 
+## API Usage
 
-By now, you have deployed a container, and in moments, you can visit your app
-live!
-
-> Be patient! In ~3 mins your app is live, at your [app url](https://container-2kvv8t0.containers.anotherwebservice.com/). It even has a free SSL/TLS certificate 🔒 you're welcome!
-
-You probably want to add code to your app. Good news, your app is ready right now to start coding, which is simple:
-
-1. Edit your code
-2. Commit your code
-3. Push your code `git push origin main`
-
-Your app will be automatically re-deployed with the latest code at: https://container-2kvv8t0.containers.anotherwebservice.com/
-
-> You app is deployed already and is working software. Gone are the days of spending weeks coding and then *another* week going to production. No. Go to production *early* and respond to change.
-
-# Getting Started 💻 (locally on your laptop)
-
-> Step 0: You need to download your repo to your computer:
-
-```
-git clone git@github.com:vmanoilov/container-2kvv8t0.git
-cd container-2kvv8t0
+### Start a Scan
+```bash
+curl -X POST http://localhost:5000/scan \
+  -H "Content-Type: application/json" \
+  -d '{"target": "example.com", "profile": "standard"}'
 ```
 
-> See an error? You might need to setup permissions [here's a guide how to setup repo clone permissions](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account)
+Profiles:
+- `quick`: Recon only
+- `standard`: Recon + Web
+- `deep`: Recon + Web + Vuln
 
-1. [Install docker](https://docs.docker.com/get-docker/)
+Response:
+```json
+{"job_id": "uuid-here"}
+```
 
-2. Start your container locally: `docker-compose up`
-3. Visit your app locally: http://127.0.0.1:5000/
+### Check Job Status
+```bash
+curl http://localhost:5000/job/<job_id>
+```
 
-## View your app locally
+### Get Full Report
+```bash
+curl http://localhost:5000/report/<job_id>
+```
 
-Visit: http://127.0.0.1:5000/
+## Local Development
 
-### Rebuild container (locally)
+1. Install dependencies: `pip install -r src/requirements.txt`
+2. Run tests: `python -m pytest tests/`
+3. Start services: `docker-compose up`
+
+## Deployment
+
+The framework is designed for containerized deployment with automatic CI/CD pipelines preserved.
 If you make changes to `Dockerfile`, then you need to rebuild your container image. To rebuild the container image:
 ```
 docker-compose build
@@ -55,29 +62,22 @@ docker-compose build
 docker-compose up --build
 ```
 
-# Start coding! Which framework did you choose?
+## Testing
 
-Need some help to get started?
-
-- [**Flask** quickstart guide](https://flask.palletsprojects.com/en/2.2.x/quickstart/) ⚗️ 🐍
-- [**Django** quide](https://docs.djangoproject.com/en/4.1/topics/http/views/) 📰
-- [**Ruby** quickstart guide](https://github.com/KarmaComputing/rails-quickstart) 💎
-- [**Express** quickstart guide](https://expressjs.com/en/starter/hello-world.html) 🟢
-
-# Debugging
-
-How do I turn on the debugger?
-
-Enable a breakpoint by adding `breakpoint()` to your code, start your application and run to that point then in a terminal type:
-
+Run unit tests:
+```bash
+python -m pytest tests/
 ```
-docker attach container-2kvv8t0
-```
-Ta-da! You'll be inside the [Python debugger](https://docs.python.org/3/library/pdb.html#module-pdb) ( ⬅️ Read this!)
 
+## Security Features
 
+- Input validation for targets and profiles
+- Timeout enforcement on all tool executions
+- Direct subprocess execution with proper error handling
+- No shell=True usage
+- Logging for monitoring and debugging
 
 ## Questions
 
 - How was this built? [All code is here](https://github.com/KarmaComputing/container-hosting)
-- How can I use a customized port numberi/change the port number listened on? You don't need to do this if you use the quickstarts. But if you do want to alter the port: Edit your `Dockerfile` and change `EXPOSE` to the port number you want your app to listen on. Understand that all apps go through the proxy (nginx) listening on port `80` and `443`, requests to your app get proxied (based on your hostname) to the port number you put after `EXPOSE` in your your `Dockerfile`. For example `EXPOSE 3000` means you want the Dokku nginx proxy to forward port `80` and `443` connections to port `3000`. You still need to make your application listen on your chosen port.
+- How can I use a customized port number/change the port number listened on? You don't need to do this if you use the quickstarts. But if you do want to alter the port: Edit your `Dockerfile` and change `EXPOSE` to the port number you want your app to listen on. Understand that all apps go through the proxy (nginx) listening on port `80` and `443`, requests to your app get proxied (based on your hostname) to the port number you put after `EXPOSE` in your your `Dockerfile`. For example `EXPOSE 3000` means you want the Dokku nginx proxy to forward port `80` and `443` connections to port `3000`. You still need to make your application listen on your chosen port.

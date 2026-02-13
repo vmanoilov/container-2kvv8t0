@@ -1,27 +1,36 @@
 services:
-  app:
-    stdin_open: true
-    tty: true
-    image: container-2kvv8t0
+  coordinator:
     build:
       context: ./src
     ports:
       - "5000:5000"
-    volumes:
-      - type: bind
-        source: ./src/web
-        target: /usr/src/app
-    environment:
-      ALLOWED_HOSTS: "127.0.0.1,localhost"
-      DATABASE_URL: mysql2=//app_user=password@db=3306/app_database?pool=5&useUnicode=true&characterEncoding=UTF-8
-      DB_ENGINE: django.db.backends.mysql
-      DB_HOST: db
-      DB_NAME: app_database
-      DB_PASSWORD: password
-      DB_PORT: 3306
-      DB_USER: app_user
-      DEBUG: "True"
-      SECRET_KEY: local_development
+    depends_on:
+      - redis
+    command: gunicorn -w 2 -b 0.0.0.0:5000 app.api.main:app
+
+  worker-recon:
+    build:
+      context: ./src
+    depends_on:
+      - redis
+    command: python3 -m app.agents.recon
+
+  worker-web:
+    build:
+      context: ./src
+    depends_on:
+      - redis
+    command: python3 -m app.agents.web
+
+  worker-vuln:
+    build:
+      context: ./src
+    depends_on:
+      - redis
+    command: python3 -m app.agents.vuln
+
+  redis:
+    image: redis:7-alpine
 
 
   db:

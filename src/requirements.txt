@@ -1,7 +1,4 @@
 Flask
-SQLAlchemy
 gunicorn
-
-PyMySQL
-coloredlogs
-python-dotenv
+redis
+pytest
